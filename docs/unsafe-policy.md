@@ -9,11 +9,27 @@ blocks, `unsafe` functions, `unsafe` trait implementations or `unsafe` attribute
 
 ## Enforcement
 
-The workspace manifest sets `unsafe_code = "forbid"` in `[workspace.lints.rust]`,
-and every crate inherits it with `[lints] workspace = true`. Cargo passes the
-setting to the compiler as a command-line `forbid`, which a crate cannot
-relax: an `#[allow(unsafe_code)]` attribute in source is rejected with error
-E0453 ("overruled by previous forbid").
+**Compiler.** The workspace manifest sets `unsafe_code = "forbid"` in
+`[workspace.lints.rust]`, and every crate inherits it with `[lints] workspace =
+true`. Cargo passes the setting to the compiler as a command-line `forbid`,
+which a crate cannot relax: an `#[allow(unsafe_code)]` attribute in source is
+rejected with error E0453 ("overruled by previous forbid").
+
+**Policy check.** `scripts/check-unsafe-policy.sh` verifies that the compiler
+enforcement actually covers every crate and that the opt-out stays narrow:
+
+- the workspace manifest sets `unsafe_code = "forbid"`;
+- every crate outside `sys-*` inherits the workspace lints and contains no
+  `unsafe` outside comments;
+- every `sys-*` crate is listed under "Approved crates", declares the lint
+  table required below, does not inherit the workspace table, and has no
+  crate-level or module-level allow of the unsafe lints.
+
+`scripts/check-unsafe-policy.sh --self-test` runs the checker against fixture
+workspaces (twelve pass and fail cases) and compiles a probe crate to confirm
+that a local allow cannot override the workspace `forbid`. The check is textual:
+it complements the compiler and Clippy and does not replace them. Both
+invocations run in the `policy` job of the continuous-integration workflow.
 
 ## Requirements for `sys-*` crates
 
@@ -38,9 +54,12 @@ Within such a crate:
 
 ## Approved crates
 
-No `sys-*` crate exists. Adding one requires an architectural decision record
-naming the interface it wraps and why a safe third-party wrapper is not
-sufficient.
+An approved crate is listed here as a bullet whose text begins with the crate
+name in backticks, followed by the interface it wraps. The policy check reads
+this section. Adding an entry requires an architectural decision record naming
+the interface and explaining why a safe third-party wrapper is not sufficient.
+
+No `sys-*` crate exists and the list is empty.
 
 ## Current state
 

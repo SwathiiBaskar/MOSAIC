@@ -20,9 +20,10 @@ A crate is admitted when all of the following hold:
 
 | Item | Result |
 | --- | --- |
-| Review date | 2026-11-02 |
+| Review date | 2026-11-04 |
 | Packages in `Cargo.lock` | 51 (1 first-party, 50 from crates.io) |
-| Advisory scan | `cargo-audit` 0.22.1 against the RustSec advisory database at revision `2295466c` (2026-10-30): no advisories for the locked set |
+| Advisory scan | `cargo-audit` 0.22.1 with `--deny warnings` against the RustSec advisory database at revision `965bf9ad` (2026-11-03): no advisories for the locked set |
+| Licence, source and ban policy | `deny.toml`, enforced by `cargo-deny` 0.20.2: licences limited to MIT and Apache-2.0, crates.io registry only, wildcard version requirements and yanked releases denied; passes for the supported targets |
 | Yanked releases | None |
 | Releases younger than 14 days | None. `rustix` is held at 1.1.5 because 1.1.6 was published on 2026-10-27 |
 | Project licence | No licence has been selected for the project; all workspace crates are marked `publish = false` |
@@ -36,6 +37,12 @@ data tables (an `AND` condition, not a choice).
 Crates in the locked set with no release in the last two years: `core_detect`
 (2021), `fnv` (2020), `quick-error` (2020), `unarray` (2022) and `num-traits`
 (2024). All five are development-only.
+
+`cargo-deny` evaluates the dependency graph of the supported targets. In the
+version in use that graph does not include crates reached only through
+development dependencies, so `cargo-audit` is the check that covers every
+package in `Cargo.lock`, and the licences of the development-only crates are
+recorded in the tables below.
 
 ## Direct dependencies
 
@@ -108,3 +115,28 @@ shipped artefact.
 | windows-link | 0.2.1 | MIT OR Apache-2.0 | 2025-10-06 |
 | windows-sys | 0.61.2 | MIT OR Apache-2.0 | 2025-10-06 |
 | winnow | 1.0.4 | MIT | 2026-07-13 |
+
+## Build and continuous-integration tooling
+
+These tools run in `.github/workflows/ci.yml`. Versions are pinned there; the
+third-party actions are pinned to full revision hashes.
+
+| Tool | Version | Licence | Released | Role |
+| --- | --- | --- | --- | --- |
+| cargo-deny | 0.20.2 | MIT OR Apache-2.0 | 2026-07-09 | Licence, source and ban policy (`deny.toml`) |
+| cargo-nextest | 0.9.148 | Apache-2.0 OR MIT | 2026-10-08 | Test runner |
+| cargo-audit | 0.22.1 | Apache-2.0 OR MIT | 2026-02-04 | Advisory scan of `Cargo.lock` |
+| gitleaks | 8.30.1 | MIT | 2026-03-21 | Secret scan of repository history |
+
+The gitleaks release archive is checked against the SHA-256 digest
+`551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb` before it is
+unpacked.
+
+| Action | Release | Licence | Released | Revision |
+| --- | --- | --- | --- | --- |
+| actions/checkout | v7.0.1 | MIT | 2026-07-17 | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
+| taiki-e/install-action | v2.87.29 | Apache-2.0 OR MIT | 2026-10-16 | `8cca0918f8471c33515202b73f56ab27f2bed283` |
+
+`taiki-e/install-action` installs `cargo-nextest`, `cargo-deny` and
+`cargo-audit` at the versions above. The aarch64 jobs install
+`gcc-aarch64-linux-gnu` and `qemu-user` from the runner's Ubuntu 24.04 archive.
