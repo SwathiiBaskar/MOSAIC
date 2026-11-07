@@ -1,0 +1,22 @@
+// Frame exchanged between nodes.
+syntax = "proto3";
+
+package mosaic.v1;
+
+message Envelope {
+  string trace_parent = 1;
+  int64 deadline_unix_ms = 2;
+  string idem_key = 3;
+  uint64 epoch = 4;
+  oneof payload {
+    Hello hello = 10;
+  }
+}
+
+// First message on every connection: protocol range and features.
+message Hello {
+  uint32 proto_min = 1;
+  uint32 proto_max = 2;
+  repeated string features = 3;
+  string node_id = 4;
+}

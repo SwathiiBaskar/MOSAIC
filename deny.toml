@@ -17,6 +17,13 @@ allow = [
     "Apache-2.0",
 ]
 confidence-threshold = 0.9
+# Each exception names the single crate that may carry the licence. Both crates
+# are used only at compile time (procedural macros and build scripts) and are
+# not linked into any MOSAIC binary; see docs/deps.md.
+exceptions = [
+    { allow = ["Unicode-3.0"], crate = "unicode-ident" },
+    { allow = ["Zlib"], crate = "foldhash" },
+]
 
 [licenses.private]
 # First-party crates carry no licence expression and are not published.

@@ -1,0 +1,39 @@
+// Basic types shared by every MOSAIC message.
+syntax = "proto3";
+
+package mosaic.v1;
+
+// Sensitivity label attached to data, capsules and journal events. Labels are
+// ordered by increasing restriction: PUBLIC < INTERNAL < CONFIDENTIAL <
+// LOCAL_ONLY.
+enum Label {
+  LABEL_UNSPECIFIED = 0;
+  PUBLIC = 1;
+  INTERNAL = 2;
+  CONFIDENTIAL = 3;
+  LOCAL_ONLY = 4;
+}
+
+// Declared side-effect class of a capsule.
+enum SideEffects {
+  SE_UNSPECIFIED = 0;
+  NONE = 1;
+  WORKSPACE = 2;
+  EXTERNAL = 3;
+}
+
+// BLAKE3-256 digest.
+message Hash {
+  // Exactly 32 bytes.
+  bytes blake3 = 1;
+}
+
+// Resource budget carried by agent processes and capsules.
+message Budget {
+  uint64 tokens = 1;
+  double usd = 2;
+  uint64 gpu_seconds = 3;
+  uint64 wall_seconds = 4;
+  uint64 mem_bytes = 5;
+  uint32 cpu_millis = 6;
+}

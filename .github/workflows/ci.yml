@@ -78,7 +78,7 @@ jobs:
       - name: Install the cross linker and emulator
         run: |
           sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends gcc-aarch64-linux-gnu libc6-dev-arm64-cross qemu-user
+          sudo apt-get install --yes --no-install-recommends gcc-aarch64-linux-gnu qemu-user
       - name: Tests
         run: cargo test --workspace --locked --lib --bins --tests --target aarch64-unknown-linux-gnu
 
@@ -103,7 +103,7 @@ jobs:
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends gcc-aarch64-linux-gnu libc6-dev-arm64-cross
+          sudo apt-get install --yes --no-install-recommends gcc-aarch64-linux-gnu
       - name: Build
         run: cargo build --workspace --locked --target "${{ matrix.target }}" --profile "${{ matrix.profile }}"
 
@@ -164,3 +164,37 @@ jobs:
         run: sh scripts/check-unsafe-policy.sh
       - name: Check the checker
         run: sh scripts/check-unsafe-policy.sh --self-test
+
+  proto:
+    name: Protobuf contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      BUF_VERSION: 1.74.0
+      BUF_SHA256: 92326d957d613712669fb55f9e4340946a8142a92120e09008459118778273d2
+      BEFORE_SHA: ${{ github.event.before }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install buf
+        run: |
+          url="https://github.com/bufbuild/buf/releases/download/v${BUF_VERSION}/buf-Linux-x86_64"
+          curl --fail --silent --show-error --location --output buf "$url"
+          echo "${BUF_SHA256}  buf" | sha256sum --check
+          chmod +x buf
+      - name: Lint
+        run: ./buf lint proto
+      - name: Breaking-change check
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            base="origin/${GITHUB_BASE_REF}"
+          else
+            base="${BEFORE_SHA}"
+          fi
+          if ! git cat-file -e "${base}^{commit}" 2>/dev/null || ! git cat-file -e "${base}:proto" 2>/dev/null; then
+            echo "The comparison revision has no proto module; nothing to compare against."
+            exit 0
+          fi
+          ./buf breaking proto --against ".git#ref=${base},subdir=proto"

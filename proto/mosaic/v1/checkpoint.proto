@@ -1,0 +1,18 @@
+// Checkpoint object describing an agent process at a step boundary.
+syntax = "proto3";
+
+package mosaic.v1;
+
+import "mosaic/v1/types.proto";
+
+message Checkpoint {
+  string ckp_id = 1;
+  string aid = 2;
+  uint64 journal_seq = 3;
+  Hash journal_hash = 4;
+  Hash workspace_root = 5;
+  Hash page_table_root = 6;
+  bytes caps_chain = 7;
+  Budget ledger = 8;
+  uint64 epoch = 9;
+}

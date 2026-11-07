@@ -1,0 +1,14 @@
+version: v2
+modules:
+  - path: .
+lint:
+  use:
+    - STANDARD
+  except:
+    # Enum value names follow the label and side-effect vocabulary used in
+    # policies, logs and documents (PUBLIC, LOCAL_ONLY, ...), so they are not
+    # prefixed with the enum name.
+    - ENUM_VALUE_PREFIX
+breaking:
+  use:
+    - WIRE_JSON
